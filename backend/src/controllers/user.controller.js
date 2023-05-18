@@ -55,8 +55,14 @@ module.exports = {
                 res
                     .header('x-auth-token', decodedIDInDatabase)
                     .header('access-control-expose-headers', 'x-auth-token')
-                    .status(200).json("Logged In with success") : 
-                res.status(400).json("Invalid token")
+                    .status(200).json({
+                        message: "Logged In with success", 
+                        user: { 
+                            fullname: user.name, 
+                            email:  user.email,
+                            phoneNumber: user.phoneNumber
+                        }}) : 
+                res.status(400).json({ message: "Invalid token" })
         } catch(err) {
             console.log("Error")
             return res.status(400).json("Please, sign in again")
@@ -64,8 +70,13 @@ module.exports = {
     },
 
     async getCurrentUser(req, res) {
-        const user = await User.findById(req.user._id).select('-password -createdAt')
+        const user = await User.findById(req.user._id).select('-password -currentLoginToken -createdAt')
         return res.status(200).json(user)
+    },
+
+    async getUserByEmail(req, res) {
+        const user = await User.findOne({email: req.params.email}).select('-password -email -currentLoginToken -createdAt')
+        return res.status(200).json({user: user})
     },
 
     async signup(req, res) {
